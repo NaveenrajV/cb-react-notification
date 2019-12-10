@@ -1,13 +1,21 @@
-import React, { Component } from 'react'
-
-import ExampleComponent from 'cb-react-notification'
+import React, { Component } from "react";
+import data from "./Data";
+import Notifications from "cb-react-notification";
 
 export default class App extends Component {
-  render () {
+  markAllAsRead = () => {
+    console.log("mark all as read");
+  };
+
+  render() {
     return (
       <div>
-        <ExampleComponent text='Modern React component module' />
+        <Notifications
+          markAllAsRead={this.markAllAsRead}
+          links={{ seeAll: "/seeAll", settings: "/settings" }}
+          data={data}
+        />
       </div>
-    )
+    );
   }
 }

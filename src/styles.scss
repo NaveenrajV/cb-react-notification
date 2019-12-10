@@ -1,0 +1,54 @@
+$options: #365899;
+$title: #1d2129;
+
+.notifications {
+	border: 1px solid rgba(100, 100, 100, 0.4);
+	width: 430px;
+	font-size: 12px;
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+	position: absolute;
+	z-index: 1;
+	background-color: white;
+
+	header {
+		display: flex;
+		justify-content: space-between;
+		padding: 8px;
+
+		.title {
+			color: $title;
+			font-weight: bold;
+		}
+
+		.options {
+			display: flex;
+			color: $options;
+
+			.option {
+				margin: 0 5px;
+
+				&:hover {
+					cursor: pointer;
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+
+	.message {
+		height: 400px;
+		overflow: auto;
+	}
+
+	footer {
+		text-align: center;
+		padding: 5px;
+		color: $options;
+		text-transform: capitalize;
+		font-weight: bold;
+
+		.see_all {
+			cursor: pointer;
+		}
+	}
+}
