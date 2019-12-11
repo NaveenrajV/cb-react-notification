@@ -1,23 +1,44 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import Card from "./Card/Card";
+import PropTypes from "prop-types";
 import classes from "./styles.scss";
 
 class Notifications extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      show: true
+      show: false,
+      style: {},
+      loading: false,
+      data: props.data,
+      dataType: typeof props.data
     };
     this.scrollRef = React.createRef();
-    this.iconRef = React.createRef();
+    this.notificationRef = React.createRef();
   }
 
   componentDidMount() {
-    this.scrollRef.current.addEventListener("scroll", () => {
+    const notificationRef = this.notificationRef.current;
+    const scrollRef = this.scrollRef.current;
+
+    if (this.state.dataType === "string") {
+      fetch(this.state.data)
+        .then(response => response.json())
+        .then(data => this.setState({ data }))
+        .catch(err => console.log(err));
+    }
+
+    if (notificationRef.offsetLeft > notificationRef.offsetWidth) {
+      this.setState({
+        style: {
+          transform: `translateX(-${notificationRef.offsetWidth}px)`
+        }
+      });
+    }
+    scrollRef.addEventListener("scroll", () => {
       if (
-        this.scrollRef.current.scrollTop +
-          this.scrollRef.current.clientHeight >=
-        this.scrollRef.current.scrollHeight
+        scrollRef.scrollTop + scrollRef.clientHeight >=
+        scrollRef.scrollHeight
       ) {
         this.fetchData();
       }
@@ -30,74 +51,81 @@ class Notifications extends Component {
   };
 
   render() {
-    const { markAllAsRead } = this.props;
+    const { style, show } = this.state;
+    const { markAllAsRead, displaySeeAll, iconClass } = this.props;
+    const CustomComponent = this.props.renderItem;
     const { seeAll, settings } = this.props.links;
 
-    const CustomComponent = this.props.renderItem
-      ? this.props.renderItem
-      : null;
-
-    const displaySeeAll = this.props.hasOwnProperty("displaySeeAll")
-      ? this.props.displaySeeAll
-      : true;
-
     const cardList = this.props.renderItem
-      ? Object.keys(this.props.data).map(key => (
+      ? Object.keys(this.state.data).map(key => (
           <CustomComponent
             key={key}
             {...this.props}
-            {...this.props.data[key]}
+            {...this.state.data[key]}
           />
         ))
-      : Object.keys(this.props.data).map(key => (
-          <Card key={key} {...this.props} {...this.props.data[key]} />
+      : Object.keys(this.state.data).map(key => (
+          <Card key={key} {...this.props} {...this.state.data[key]} />
         ));
 
     return (
-      <React.Fragment>
+      <Fragment>
         <i
-          className="fas fa-bell"
+          className={iconClass}
           style={{
             fontSize: "2rem",
-            color: this.state.show ? "grey" : "#142545"
+            color: show ? "grey" : "#142545"
           }}
-          onClick={() => this.setState({ show: !this.state.show })}
+          onClick={() => this.setState({ show: !show })}
         ></i>
-        {this.state.show ? (
-          <div
-            className={classes.notifications}
-            ref={this.iconRef}
-            style={this.props.style ? this.props.style : null}
-          >
-            <header>
-              <div className={classes.title}>Notifications</div>
-              <div className={classes.options}>
-                <div className={classes.option} onClick={markAllAsRead}>
-                  Mark all as read
-                </div>
 
-                <div className={classes.option}>
-                  <a href={settings}>Settings</a>
-                </div>
+        <div
+          className={classes.notifications}
+          ref={this.notificationRef}
+          style={
+            this.props.style ? { ...this.props.style, ...style } : { ...style }
+          }
+          style={{ visibility: show ? "visible" : "hidden" }}
+        >
+          <header>
+            <div className={classes.title}>Notifications</div>
+            <div className={classes.options}>
+              <div className={classes.option} onClick={markAllAsRead}>
+                Mark all as read
               </div>
-            </header>
 
-            <div className={classes.message} ref={this.scrollRef}>
-              {cardList}
+              <div className={classes.option}>
+                <a href={settings}>Settings</a>
+              </div>
             </div>
+          </header>
 
-            {displaySeeAll ? (
-              <footer>
-                <a href={seeAll}>
-                  <span className={classes.see_all}>see all</span>
-                </a>
-              </footer>
-            ) : null}
+          <div className={classes.message} ref={this.scrollRef}>
+            {cardList}
           </div>
-        ) : null}
-      </React.Fragment>
+
+          {displaySeeAll && (
+            <footer>
+              <a href={seeAll}>
+                <span className={classes.see_all}>see all</span>
+              </a>
+            </footer>
+          )}
+        </div>
+      </Fragment>
     );
   }
 }
+
+Notifications.defaultProps = {
+  displaySeeAll: true,
+  CustomComponent: null,
+  iconClass: "fas fa-bell"
+};
+
+Notifications.propTypes = {
+  markAllAsRead: PropTypes.func.isRequired,
+  links: PropTypes.objectOf(PropTypes.string)
+};
 
 export default Notifications;
